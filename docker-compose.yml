@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysqldb
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: martfury_shop
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysqlipt-scrs:/docker-entrypoint-initdb.d
+    networks:
+      - springboot-mysql-net
+
+  back-end:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: back-end
+    container_name: martfury-be
+    restart: on-failure
+    environment:
+      MYSQL_HOST: mysqldb
+      MYSQL_PORT: 3306
+      MYSQL_DB_NAME: martfury_shop
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123456
+    ports:
+      - "8080:8081"
+    depends_on:
+      - mysql
+    networks:
+      - springboot-mysql-net
+
+networks:
+  springboot-mysql-net:
+    driver: bridge

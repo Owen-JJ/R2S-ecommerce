@@ -1,54 +1,71 @@
-# R2Sshop E-Commerce
-Một ứng dụng E-Commerce được xây dựng bằng Java và Spring Boot.
+# Triển khai springboot application với mysql trên docker 
 
-## Mô Tả
+## DATABASE
 
-R2Sshop E-Commerce là một ứng dụng thương mại điện tử đơn giản được xây dựng trên nền tảng Java và Spring Boot. Ứng dụng cung cấp các tính năng cơ bản để quản lý sản phẩm, đơn hàng và người dùng.
+Kéo cơ sở dữ liệu mysql từ docker
+``` terminal
+$ docker pull mysql
+```
 
-## Tài Liệu Phát Triển
-[Group A++ Documentation](https://docs.google.com/spreadsheets/d/16_YGrq3n_Cq-HTUXetFY-VTpHtURI_AUfCZu_otgRf0)
-
-## Hướng Dẫn Cài Đặt
-
-### Yêu Cầu
-
-- Java 17
-- Maven
-- MySQL
-
-### Cài Đặt và Chạy
-
-1. Clone repository:
-
-    ```bash
-    git clone https://github.com/Norzax/R2Sshop_ECommerce.git
-    ```
-
-2. Cấu hình cơ sở dữ liệu trong `application.properties`.
-
-3. Chạy ứng dụng:
-
-    ```bash
-    mvn spring-boot:run
-    ```
-
-## Các Nhánh Quan Trọng
-
-- **main**: Nhánh chính, luôn ổn định và chứa phiên bản đã được phát hành.
-- **develop**: Nhánh phát triển, được sử dụng cho việc phát triển mới, các tính năng chưa hoàn thiện.
-- **feature/<tên-tính-năng>**: Nhánh cho từng tính năng cụ thể đang được phát triển.
-- **hotfix/<tên-hotfix>**: Nhánh sửa lỗi nhanh chóng để fix các vấn đề cấp bách từ production.
+Tạo container mysql
+``` terminal
+$ docker run -p 3307:3306 --name mysqldb -e MYSQL_ROOT_PASSWORD=your_pass_word -e MYSQL_DATABASE=test -d mysql
+```
+- Với mysqldb là tên container 
+- 3307:3306 là ánh xạ của cổng 3306 của mysql lên cổng 3307
+- Nhớ thay đổi tên cơ sở dữ liệu và mật khẩu; mật khẩu này là mật khẩu mới, chứ không phải mật khẩu cho cổng 3306
 
 
-## Cấu Trúc Thư Mục
+## Config springboot application
+Vào application.properties 
+``` Java
+spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:test}
+spring.datasource.username=${MYSQL_USER:root}
+spring.datasource.password=${MYSQL_PASSWORD: your_pass_word}
+```
 
-- `/src`: Mã nguồn Java.
-- `/src/main/resources`: Cấu hình ứng dụng và tài nguyên.
-- `/pom.xml`: Tệp cấu hình Maven.
+## Network
+Khi đẩy lên docker, ứng dụng sẽ không hiểu được việc lấy cổng localhost nên chúng ta phải sử dụng network để kết nối chúng lại với nhau 
 
-## Đóng Góp
+Tạo network
+``` terminal
+docker network create netmysql
+```
+- netmysql là tên network 
 
-Chúng tôi rất hoan nghênh sự đóng góp từ cộng đồng. Nếu bạn muốn đóng góp vào dự án, vui lòng tạo pull request.
+Kết nối network với mysql container
+``` terminal
+docker network connect netmysql mysqldb
+```
 
----
-© 2023 R2Sshop E-Commerce.
+## File .jar và dockerfile
+### File .jar
+- Dùng lệnh ```mvn clean package``` hoặc bấm vào biểu tượng Maven ở bên phải khung hình sau đó chọn clean và package
+- Khi đó ứng dụng sẽ tiến hành thực hiện tạo file .jar
+- Sau khi chạy xong thì file .jar sẽ nằm trong folder test; ngoài file .jar, chúng ta sẽ có thêm file .jar.original
+
+### Dockerfile
+Tạo dockerfile có cùng cấp với file pom.xml, không cần đuôi file
+
+``` Dockerfile
+FROM openjdk:11
+WORKDIR /app
+COPY target/*.jar /app/*.jar
+ENTRYPOINT ["java", "-jar", "*.jar"]
+```
+- Ghi chú: thay dấu ‘*’ thành tên của bạn
+
+## Đẩy springboot application lên docker 
+Tạo images
+``` terminal
+docker build -t spring-app .
+```
+- spring-app là tên images
+
+Tạo container và chạy 
+``` Terminal
+docker run -p 8081:8080 --name testing --net netmysql -e MYSQL_HOST=mysqldb -e MYSQL_PORT=3306 -e MYSQL_DB_NAME=test -e MYSQL_USER=root -e MYSQL_PASSWORD=your_ pass_word spring-app
+```
+- 8081:8080 là ánh xạ cổng 8080 của springboot 
+
+#### Khi này, ứng dụng của các bạn đã chạy được trên docker và kết nối được với cơ sở dữ liệu 
