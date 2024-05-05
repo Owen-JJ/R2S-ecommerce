@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.aclass.r2sshop_ecommerce.R2SshopECommerceApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.451 s -- in com.aclass.r2sshop_ecommerce.R2SshopECommerceApplicationTests
