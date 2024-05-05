@@ -1,4 +1,4 @@
 FROM openjdk:17
 WORKDIR /app
-COPY target/MartfuryShop-1.0.jar /app/MartfuryShop-1.0.jar
-ENTRYPOINT ["java", "-jar", "MartfuryShop-1.0.jar"]
+COPY target/R2Sshop_ECommerce-0.0.1-SNAPSHOT.jar /app/R2Sshop_ECommerce-0.0.1-SNAPSHOT.jar
+ENTRYPOINT ["java", "-jar", "R2Sshop_ECommerce-0.0.1-SNAPSHOT.jar"]
